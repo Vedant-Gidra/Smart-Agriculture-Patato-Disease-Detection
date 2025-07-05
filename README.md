@@ -1,4 +1,4 @@
-# 🌱 Smart Agriculture: CNN-Based Potato Disease Detection System
+# Smart Agriculture: CNN-Based Potato Disease Detection System
 
 ## Introduction
 
