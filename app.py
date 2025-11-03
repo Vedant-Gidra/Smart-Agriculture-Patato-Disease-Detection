@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify , render_template
-from tensorflow.keras.models import load_model
+from tensorflow.keras.models import load_model # pyright: ignore[reportMissingImports]
 import tensorflow as tf
 import numpy as np
 from PIL import Image
@@ -42,12 +42,10 @@ def preprocess_image():
 @app.route("/predict", methods=["GET"])
 def predict():
     image_array = np.load("temp_image.npy")
-    predictions = model.predict(image_array)[0]  # [0] to get first sample’s predictions
+    predictions = model.predict(image_array)[0] 
 
-    # Compute predicted class and confidence
     predicted_class = CLASS_NAMES[np.argmax(predictions)]
 
-    # Compute probability for all classes
     probabilities = {CLASS_NAMES[i]: round(float(predictions[i]) * 100, 2) for i in range(len(CLASS_NAMES))}
 
     return jsonify({
