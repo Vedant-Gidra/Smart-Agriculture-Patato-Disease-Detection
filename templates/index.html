@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Potato Leaf Disease Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <header class="hero">
+            <h1>Potato Leaf Disease Detector</h1>
+            <p class="subtitle">Upload an image of a potato leaf to detect disease using AI</p>
+        </header>
+
+        <main>
+            <form id="upload-form" enctype="multipart/form-data" class="upload-card">
+                <label id="drop-area" for="file-input" class="drop-area">
+                    <input type="file" id="file-input" name="image" accept="image/*" required hidden>
+                    <div class="drop-inner">
+                        <svg class="upload-icon" viewBox="0 0 24 24" width="48" height="48" aria-hidden="true">
+                            <path fill="#2e7d32" d="M5 20h14v-2H5v2zm7-18L5.33 9h3.42v6h5.5V9h3.42L12 2z" />
+                        </svg>
+
+                        <div id="drop-text">
+                            <strong>Click or drag & drop to upload a potato leaf image</strong>
+                            <div class="muted">Supported formats: JPG, PNG</div>
+                        </div>
+                    </div>
+                </label>
+
+                <div class="actions">
+                    <button type="submit" id="predict-btn" class="predict-btn" disabled>Predict Disease</button>
+                </div>
+            </form>
+
+            <section id="result" class="result-container" aria-live="polite"></section>
+
+            <div id="chart-container" style="display: none;">
+                <canvas id="probabilityChart"></canvas>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const form = document.getElementById('upload-form');
+        const fileInput = document.getElementById('file-input');
+        const dropArea = document.getElementById('drop-area');
+        const dropInner = document.querySelector('.drop-inner');
+        const dropText = document.getElementById('drop-text');
+        const predictBtn = document.getElementById('predict-btn');
+        const resultDiv = document.getElementById('result');
+        let chart = null;
+
+        // Drag & drop visual feedback
+        ['dragenter', 'dragover'].forEach(ev => {
+            dropArea.addEventListener(ev, (e) => {
+                e.preventDefault(); e.stopPropagation();
+                dropArea.classList.add('drag-over');
+            }, false);
+        });
+        ['dragleave', 'drop'].forEach(ev => {
+            dropArea.addEventListener(ev, (e) => {
+                e.preventDefault(); e.stopPropagation();
+                dropArea.classList.remove('drag-over');
+            }, false);
+        });
+
+        dropArea.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            if (dt && dt.files && dt.files[0]) {
+                fileInput.files = dt.files;
+                handleFile(dt.files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const f = e.target.files[0];
+            if (f) handleFile(f);
+        });
+
+        function handleFile(file) {
+            // replace drop-inner content with centered preview image
+            dropInner.innerHTML = ''; // remove all helper content
+            dropInner.classList.add('has-image');
+
+            const img = document.createElement('img');
+            img.id = 'image-preview';
+            img.alt = 'Preview';
+            img.className = 'drop-preview-img';
+            dropInner.appendChild(img);
+
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                img.src = ev.target.result;
+                predictBtn.disabled = false;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!fileInput.files[0]) return;
+            predictBtn.disabled = true;
+            predictBtn.textContent = 'Predicting...';
+
+            const formData = new FormData();
+            formData.append('image', fileInput.files[0]);
+
+            try {
+                await fetch('/preprocess', { method: 'POST', body: formData });
+                const response = await fetch('/predict');
+                const data = await response.json();
+
+                if (data.error) {
+                    resultDiv.innerHTML = `<div class="error">${data.error}</div>`;
+                    return;
+                }
+
+                const probs = data.class_probabilities || {};
+                const labels = Object.keys(probs);
+                const values = Object.values(probs).map(v => Number(v));
+
+                resultDiv.innerHTML = `
+                    <div class="prediction-card">
+                        <div class="prediction-header">
+                            <div>
+                                <h2 class="prediction-title">Prediction Result</h2>
+                                <div class="prediction-sub">Detected Disease</div>
+                            </div>
+                        </div>
+
+                        <div class="prediction-body">
+                            <div class="predicted-class">${data.predicted_class}</div>
+                            <div class="confidence">Confidence: <span class="confidence-value">${(Math.max(...values)).toFixed(2)}%</span></div>
+                        </div>
+                    </div>
+                `;
+
+                const chartContainer = document.getElementById('chart-container');
+                chartContainer.style.display = 'block';
+                if (chart) chart.destroy();
+
+                const ctx = document.getElementById('probabilityChart').getContext('2d');
+                chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Confidence (%)',
+                            data: values,
+                            backgroundColor: labels.map((_, i) => ['#4CAF50', '#2196F3', '#FFC107'][i] || '#8BC34A'),
+                            borderWidth: 0,
+                            barThickness: 10,
+                            maxBarThickness: 14
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { beginAtZero: true, max: 100, ticks: { color: '#666' }, grid: { color: 'rgba(0,0,0,0.05)' } },
+                            y: { ticks: { color: '#333' }, grid: { display: false } }
+                        },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { callbacks: { label: ctx => ctx.parsed.x + '%' } }
+                        }
+                    }
+                });
+
+            } catch (err) {
+                resultDiv.innerHTML = `<div class="error">Error: ${err.message}</div>`;
+            } finally {
+                predictBtn.disabled = false;
+                predictBtn.textContent = 'Predict Disease';
+            }
+        });
+    </script>
+</body>
+
+</html>
