@@ -39,22 +39,31 @@ This project proposes a **deep learning model** using a **Dual-Branch Convolutio
 
 ## How It Works
 
-The system follows a two-step process involving preprocessing and prediction:
+The system operates through a **Flask-based backend** that handles image uploads, preprocessing, and prediction. It follows a two-step pipeline to classify potato leaf diseases efficiently.
 
-1. **User Uploads an Image:**  
-   The image is sent to the backend via the `/preprocess` endpoint, where it is resized, normalized, and transformed into a model-ready format.
+1. **Image Upload:**  
+   The user uploads a leaf image through the web interface. The image is received by the Flask backend via the `/preprocess` endpoint.
 
-2. **Model Prediction:**  
-   The preprocessed image is passed to the `/predict` endpoint, which loads the trained `.keras` model and returns the predicted class along with confidence scores.
+2. **Preprocessing and Temporary Storage:**  
+   The uploaded image is resized to **(224×224)** pixels, normalized to a **[0, 1]** range, and converted into a NumPy array for model compatibility.  
+   It is then **saved locally** as `"temp_image.npy"` for later use during prediction.
 
-### Data Flow Overview
+3. **Model Prediction:**  
+   The preprocessed image file (`temp_image.npy`) is loaded by the `/predict` endpoint, which passes it to the trained CNN model for classification.
 
-| Step | Description | Endpoint |
-|------|--------------|-----------|
-| **1. Image Upload** | User uploads a leaf image to the Flask backend. | `/preprocess` |
-| **2. Image Preprocessing** | Image is resized to (224×224), normalized (1/255), and converted to a NumPy array. | `/preprocess` |
-| **3. Prediction** | The processed image is fed into the CNN model for classification. | `/predict` |
-| **4. Response** | The predicted label (Healthy / Early Blight / Late Blight) and confidence score are sent back. | `/predict` |
+4. **Response Generation:**  
+   The backend returns the **predicted disease class** (Healthy, Early Blight, or Late Blight) along with the **confidence score** as a JSON response.
+
+---
+
+### API Endpoints
+
+| Endpoint | Method | Description |
+|-----------|---------|-------------|
+| `/` | GET | Displays the web interface for potato disease detection. |
+| `/preprocess` | POST | Accepts an uploaded image, preprocesses it, and saves it locally as `temp_image.npy`. |
+| `/predict` | POST | Loads `temp_image.npy`, runs model inference, and returns the predicted disease with confidence. |
+
 
 ---
 
