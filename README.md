@@ -73,11 +73,12 @@ The proposed architecture includes:
 ## Results
 - The model achieved *99%* training accuracy and *97%* validation accuracy, demonstrating strong generalization and robustness.
 <img width="984" height="328" alt="image" src="https://github.com/user-attachments/assets/635f239e-6d13-41d0-bb65-522731721ed2" />
+
 - Confusion matrix shows that the model was able to genealize well and able to identify the diseased(Late bright or early bright) and the healthy.
 <img width="746" height="663" alt="image" src="https://github.com/user-attachments/assets/c01cc099-ae69-4b5d-ab64-1fd8896243a7" />
+
 - **Accuracy:** Achieved over *98%* accuracy on test images.
 <img width="573" height="214" alt="image" src="https://github.com/user-attachments/assets/d9dc4d2d-a66e-4242-b3c6-a5eccefd440e" />
-
 
 
 ---
