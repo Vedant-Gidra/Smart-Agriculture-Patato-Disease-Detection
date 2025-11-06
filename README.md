@@ -26,47 +26,72 @@ Early detection of potato diseases is crucial to prevent large-scale crop losses
 
 ## Solution Overview
 
-This project proposes a **deep learning model** using a **Dual-Branch Convolutional Neural Network (CNN)** with an **attention mechanism** to detect potato leaf diseases from images.
+This project proposes a **deep learning model** using a **Dual-Branch Convolutional Neural Network (CNN)** with an **attention mechanism**, deployed through a **Flask-based web server** for real-time disease detection.
 
-Key benefits:
+### Key Benefits
 
-- High accuracy in disease classification
-- Faster than manual inspection
-- Scalable to large agricultural fields
+- High accuracy in disease classification  
+- Real-time image upload and prediction through Flask backend  
+- Simple web interface for farmers and researchers  
+- Faster and more scalable than manual inspection  
+
+---
+
+## How It Works
+
+The system follows a two-step process involving preprocessing and prediction:
+
+1. **User Uploads an Image:**  
+   The image is sent to the backend via the `/preprocess` endpoint, where it is resized, normalized, and transformed into a model-ready format.
+
+2. **Model Prediction:**  
+   The preprocessed image is passed to the `/predict` endpoint, which loads the trained `.keras` model and returns the predicted class along with confidence scores.
+
+### Data Flow Overview
+
+| Step | Description | Endpoint |
+|------|--------------|-----------|
+| **1. Image Upload** | User uploads a leaf image to the Flask backend. | `/preprocess` |
+| **2. Image Preprocessing** | Image is resized to (224×224), normalized (1/255), and converted to a NumPy array. | `/preprocess` |
+| **3. Prediction** | The processed image is fed into the CNN model for classification. | `/predict` |
+| **4. Response** | The predicted label (Healthy / Early Blight / Late Blight) and confidence score are sent back. | `/predict` |
 
 ---
 
 ## Model Architecture
 
-The proposed architecture:
+The proposed architecture includes:
 
-- Dual-Branch CNN:
-  - Branch 1: Standard feature extraction
-  - Branch 2: Attention mechanism for focusing on important regions
-- Merged features from both branches
-- Dense layers for final classification
+- **Dual-Branch CNN:**
+  - Branch 1: Standard convolutional feature extraction
+  - Branch 2: Attention-based feature enhancement  
+- **Feature Fusion Layer:** Merges both branches for better context representation  
+- **Dense Layers:** Perform final classification into three categories
 
 ---
 
 ## Results
-  - The model achieved *99%* training accuracy and *97%* validation accuracy, demonstrating strong generalization and robustness.
-  - ![image](https://github.com/user-attachments/assets/8effb36a-84d3-4956-967d-dacc003d1a69)
-  
-  - Confusion matrix shows that the model was able to genealize well and able to identify the diseased(Late bright or early bright) and the healthy.
-  - ![image](https://github.com/user-attachments/assets/789f2914-4fe0-470e-a746-48504659372c)
+- The model achieved *99%* training accuracy and *97%* validation accuracy, demonstrating strong generalization and robustness.
+<img width="984" height="328" alt="image" src="https://github.com/user-attachments/assets/635f239e-6d13-41d0-bb65-522731721ed2" />
+- Confusion matrix shows that the model was able to genealize well and able to identify the diseased(Late bright or early bright) and the healthy.
+![Confusion Matrix](https://github.com/user-attachments/assets/789f2914-4fe0-470e-a746-48504659372c)
+- **Accuracy:** Achieved over *98%* accuracy on test images.
+<img width="573" height="214" alt="image" src="https://github.com/user-attachments/assets/d9dc4d2d-a66e-4242-b3c6-a5eccefd440e" />
 
-  - **Accuracy:** Achieved over *98%* accuracy on test images.
-  - ![image](https://github.com/user-attachments/assets/2fcb718b-6f37-449b-9fea-68977899bc81)
 
+
+---
+
+## Interface
+<img width="1057" height="750" alt="image" src="https://github.com/user-attachments/assets/8e6e9cf6-af87-413f-ab87-ce8f048fb3ca" />
+<img width="1027" height="442" alt="image" src="https://github.com/user-attachments/assets/8371ab3b-1e9b-4f13-994b-46e69af1dd7d" />
 
 ---
 
 ## Requirements
 
 - Python 3.8+
-- TensorFlow / Keras
+- Flask
+- TensorFlow
 - NumPy
-- Matplotlib
-- Jupyter Notebook
-
-
+- Pandas
